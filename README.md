@@ -2,6 +2,8 @@
 
 `mastodon-comments` is a [webcomponent](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components) that will embed a Mastodon toot conversation in a website.
 
+This webcomponent is explained in detail in the [following blog post](https://danielpecos.com/2022/12/25/mastodon-as-comment-system-for-your-static-blog/), where you can see a live example as well.
+
 ## Characteristics
 
 - Implemented as a standard web component, easy to integrate
