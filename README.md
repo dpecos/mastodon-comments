@@ -9,6 +9,8 @@
 
 ## Styling the component
 
+These are the default values that the component exposes as CSS vars (no need to specify them if you are happy with the current values):
+
 ```css
 mastodon-comments {
   --font-color: #5d686f;
