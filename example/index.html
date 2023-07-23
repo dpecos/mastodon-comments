@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.1/purify.min.js" integrity="sha512-uHOKtSfJWScGmyyFr2O2+efpDx2nhwHU2v7MVeptzZoiC7bdF6Ny/CmZhN2AwIK1oCFiVQQ5DA/L9FSzyPNu6Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+      /*
+      mastodon-comments {
+        --font-color: #5d686f;
+        --font-size: 1.0rem;
+
+        --block-border-width: 1px;
+        --block-border-radius: 3px;
+        --block-border-color: #ededf0;
+        --block-background-color: #f7f8f8;
+
+        --comment-indent: 40px;
+      }
+      */
+
+      @media only screen and (max-width: 1024px) {
+        mastodon-comments {
+          --comment-indent: 20px;
+        }
+      }
+
+      @media only screen and (max-width: 640px) {
+        mastodon-comments {
+          --comment-indent: 0px;
+        }
+      }
+      body {
+        font-family: sans-serif;
+      }
+    </style>
+
+    <script type="module" src="mastodon-comments.js"></script>
+  </head>
+  <body>
+    <h1>Mastodon Comments Webcomponent</h1>
+
+    <mastodon-comments host="fosstodon.org" user="dpecos" tootId="109574160582937075" style="width : 1024px"></mastodon-comments>
+  </body>
+</html>
