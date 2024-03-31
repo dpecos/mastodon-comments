@@ -126,6 +126,7 @@ class MastodonComments extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML = `
+      <p id="post-interactions-count"></p>
       <h2>Comments</h2>
 
       <noscript>
@@ -285,6 +286,44 @@ class MastodonComments extends HTMLElement {
     let _this = this;
 
     fetch(
+      "https://" + this.host + "/api/v1/statuses/" + this.tootId,
+    )
+      .then((response) => response.json())
+      .then((toot) => {
+            document.getElementById("post-interactions-count").innerHTML =
+              `
+              <div class="mastodon-comment" style="font-size: 2.0rem; background-color: transparent; border: none">
+                <div class="status" align="center">
+                  <div class="replies ${this.toot_active(toot, "replies")}">
+                  <a href="${
+                    toot.url
+                  }" rel="nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
+                    toot,
+                    "replies",
+                  )}</a>
+                  </div><div class="reblogs ${this.toot_active(toot, "reblogs")}">
+                  <a href="${
+                    toot.url
+                  }" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
+                    toot,
+                    "reblogs",
+                  )}</a>
+                  </div><div class="favourites ${this.toot_active(toot, "favourites")}">
+                    <a href="${
+                      toot.url
+                    }" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
+                      toot,
+                      "favourites",
+                    )}</a>
+                  </div>  
+                </div>
+              </div>
+              `;
+        }
+    
+      );
+
+    fetch(
       "https://" + this.host + "/api/v1/statuses/" + this.tootId + "/context",
     )
       .then((response) => response.json())
@@ -298,7 +337,7 @@ class MastodonComments extends HTMLElement {
           _this.render_toots(data["descendants"], _this.tootId, 0);
         } else {
           document.getElementById("mastodon-comments-list").innerHTML =
-            "<p>Not comments found</p>";
+            "<p>No comments found</p>";
         }
 
         _this.commentsLoaded = true;
