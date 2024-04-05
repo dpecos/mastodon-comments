@@ -11,6 +11,11 @@ const styles = `
   --comment-indent: 40px;
 }
 
+#mastodon-stats {
+  text-align: center;
+  font-size: calc(var(--font-size) * 2)
+}
+
 #mastodon-comments-list {
   margin: 0 auto;
 }
@@ -86,25 +91,25 @@ const styles = `
   margin-bottom:0;
 }
 
-.mastodon-comment .status > div {
+.mastodon-comment .status > div, #mastodon-stats > div {
   display: inline-block;
   margin-right: 15px;
 }
 
-.mastodon-comment .status a {
+.mastodon-comment .status a, #mastodon-stats a {
   color: #5d686f;
   text-decoration: none;
 }
 
-.mastodon-comment .status .replies.active a {
+.mastodon-comment .status .replies.active a, #mastodon-stats .replies.active a {
   color: #003eaa;
 }
 
-.mastodon-comment .status .reblogs.active a {
+.mastodon-comment .status .reblogs.active a, #mastodon-stats .reblogs.active a {
   color: #8c8dff;
 }
 
-.mastodon-comment .status .favourites.active a {
+.mastodon-comment .status .favourites.active a, #mastodon-stats .favourites.active a {
   color: #ca8f04;
 }
 `;
@@ -126,7 +131,7 @@ class MastodonComments extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML = `
-      <p id="post-interactions-count"></p>
+      <div id="mastodon-stats"></div>
       <h2>Comments</h2>
 
       <noscript>
@@ -166,6 +171,35 @@ class MastodonComments extends HTMLElement {
   toot_count(toot, what) {
     var count = toot[what + "_count"];
     return count > 0 ? count : "";
+  }
+
+  toot_stats(toot) {
+    return `
+      <div class="replies ${this.toot_active(toot, "replies")}">
+        <a href="${
+          toot.url
+        }" rel="nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
+          toot,
+          "replies",
+        )}</a>
+      </div>
+      <div class="reblogs ${this.toot_active(toot, "reblogs")}">
+        <a href="${
+          toot.url
+        }" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
+          toot,
+          "reblogs",
+        )}</a>
+      </div>
+      <div class="favourites ${this.toot_active(toot, "favourites")}">
+        <a href="${
+          toot.url
+        }" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
+          toot,
+          "favourites",
+        )}</a>
+      </div>
+    `;
   }
 
   user_account(account) {
@@ -238,30 +272,7 @@ class MastodonComments extends HTMLElement {
             .join("")}
         </div>
         <div class="status">
-          <div class="replies ${this.toot_active(toot, "replies")}">
-            <a href="${
-              toot.url
-            }" rel="nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
-              toot,
-              "replies",
-            )}</a>
-          </div>
-          <div class="reblogs ${this.toot_active(toot, "reblogs")}">
-            <a href="${
-              toot.url
-            }" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
-              toot,
-              "reblogs",
-            )}</a>
-          </div>
-          <div class="favourites ${this.toot_active(toot, "favourites")}">
-            <a href="${
-              toot.url
-            }" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
-              toot,
-              "favourites",
-            )}</a>
-          </div>
+          ${this.toot_stats(toot)}
         </div>
       </div>`;
 
@@ -285,43 +296,12 @@ class MastodonComments extends HTMLElement {
 
     let _this = this;
 
-    fetch(
-      "https://" + this.host + "/api/v1/statuses/" + this.tootId,
-    )
+    fetch("https://" + this.host + "/api/v1/statuses/" + this.tootId)
       .then((response) => response.json())
       .then((toot) => {
-            document.getElementById("post-interactions-count").innerHTML =
-              `
-              <div class="mastodon-comment" style="font-size: 2.0rem; background-color: transparent; border: none">
-                <div class="status" align="center">
-                  <div class="replies ${this.toot_active(toot, "replies")}">
-                  <a href="${
-                    toot.url
-                  }" rel="nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
-                    toot,
-                    "replies",
-                  )}</a>
-                  </div><div class="reblogs ${this.toot_active(toot, "reblogs")}">
-                  <a href="${
-                    toot.url
-                  }" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
-                    toot,
-                    "reblogs",
-                  )}</a>
-                  </div><div class="favourites ${this.toot_active(toot, "favourites")}">
-                    <a href="${
-                      toot.url
-                    }" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
-                      toot,
-                      "favourites",
-                    )}</a>
-                  </div>  
-                </div>
-              </div>
-              `;
-        }
-    
-      );
+        document.getElementById("mastodon-stats").innerHTML =
+          this.toot_stats(toot);
+      });
 
     fetch(
       "https://" + this.host + "/api/v1/statuses/" + this.tootId + "/context",
