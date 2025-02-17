@@ -9,6 +9,7 @@ const styles = `
   --block-background-color: #f7f8f8;
 
   --comment-indent: 40px;
+  --comment-padding: 20px;
 }
 
 #mastodon-stats {
@@ -24,7 +25,7 @@ const styles = `
   background-color: var(--block-background-color);
   border-radius: var(--block-border-radius);
   border: var(--block-border-width) var(--block-border-color) solid;
-  padding: 20px;
+  padding: var(--comment-padding);
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
