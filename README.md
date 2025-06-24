@@ -24,7 +24,6 @@ mastodon-comments {
   --block-background-color: #f7f8f8;
 
   --comment-indent: 40px;
-  --comment-padding: 20px;
 }
 ```
 

@@ -9,12 +9,24 @@ const styles = `
   --block-background-color: #f7f8f8;
 
   --comment-indent: 40px;
-  --comment-padding: 20px;
+}
+
+mastodon-comments {
+  font-size: var(--font-size);
+}
+
+p {
+  margin: 0 0 1rem 0;
 }
 
 #mastodon-stats {
   text-align: center;
-  font-size: calc(var(--font-size) * 2)
+  font-size: calc(var(--font-size) * 1.5);
+}
+
+#mastodon-title {
+  font-size: calc(var(--font-size) * 1.5);
+  font-weight: bold;
 }
 
 #mastodon-comments-list {
@@ -25,12 +37,12 @@ const styles = `
   background-color: var(--block-background-color);
   border-radius: var(--block-border-radius);
   border: var(--block-border-width) var(--block-border-color) solid;
-  padding: var(--comment-padding);
+  padding: 15px;
+  padding-bottom: 0px;
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
   color: var(--font-color);
-  font-size: var(--font-size);
 }
 
 .mastodon-comment p {
@@ -55,6 +67,7 @@ const styles = `
 .mastodon-comment .author .details {
   display: flex;
   flex-direction: column;
+  line-height: 1.2em;
 }
 
 .mastodon-comment .author .details .name {
@@ -72,7 +85,13 @@ const styles = `
 }
 
 .mastodon-comment .content {
-  margin: 15px 20px;
+  margin: 0px 15px;
+  line-height: 1.5em;
+}
+
+.mastodon-comment .author .details a,
+.mastodon-comment .content p {
+  margin-bottom: 10px;
 }
 
 .mastodon-comment .attachments {
@@ -85,11 +104,6 @@ const styles = `
 
 .mastodon-comment .attachments img {
   max-width: 100%;
-}
-
-.mastodon-comment .content p:first-child {
-  margin-top:0;
-  margin-bottom:0;
 }
 
 .mastodon-comment .status > div, #mastodon-stats > div {
@@ -133,7 +147,13 @@ class MastodonComments extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
       <div id="mastodon-stats"></div>
-      <h2>Comments</h2>
+      <div id="mastodon-title">Comments</div>
+
+      <noscript>
+        <div id="error">
+          Please enable JavaScript to view the comments powered by the Fediverse.
+        </div>
+      </noscript>
 
       <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
           href="https://${this.host}/@${this.user}/${this.tootId}">post</a>.
