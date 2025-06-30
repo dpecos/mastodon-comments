@@ -31,6 +31,15 @@ p {
 
 #mastodon-comments-list {
   margin: 0 auto;
+  padding: 0;
+}
+
+#mastodon-comments-list ul {
+  padding-left: var(--comment-indent);
+}
+
+#mastodon-comments-list li {
+  list-style: none;
 }
 
 .mastodon-comment {
@@ -38,7 +47,6 @@ p {
   border-radius: var(--block-border-radius);
   border: var(--block-border-width) var(--block-border-color) solid;
   padding: 15px;
-  padding-bottom: 0px;
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -85,7 +93,7 @@ p {
 }
 
 .mastodon-comment .content {
-  margin: 0px 15px;
+  margin: 15px 0;
   line-height: 1.5em;
 }
 
@@ -156,9 +164,9 @@ class MastodonComments extends HTMLElement {
       </noscript>
 
       <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
-          href="https://${this.host}/@${this.user}/${this.tootId}">post</a>.
+          href="https://${this.host}/@${this.user}/${this.tootId}" rel="ugc">post</a>.
       </p>
-      <p id="mastodon-comments-list"></p>
+      <ul id="mastodon-comments-list"></ul>
     `;
 
     const comments = document.getElementById("mastodon-comments-list");
@@ -193,7 +201,7 @@ class MastodonComments extends HTMLElement {
       <div class="replies ${this.toot_active(toot, "replies")}">
         <a href="${
           toot.url
-        }" rel="nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
+        }" rel="ugc nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
           toot,
           "replies",
         )}</a>
@@ -201,7 +209,7 @@ class MastodonComments extends HTMLElement {
       <div class="reblogs ${this.toot_active(toot, "reblogs")}">
         <a href="${
           toot.url
-        }" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
+        }/reblogs" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
           toot,
           "reblogs",
         )}</a>
@@ -209,7 +217,7 @@ class MastodonComments extends HTMLElement {
       <div class="favourites ${this.toot_active(toot, "favourites")}">
         <a href="${
           toot.url
-        }" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
+        }/favourites" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
           toot,
           "favourites",
         )}</a>
@@ -226,14 +234,14 @@ class MastodonComments extends HTMLElement {
     return result;
   }
 
-  render_toots(toots, in_reply_to, depth) {
+  render_toots(toots, in_reply_to) {
     var tootsToRender = toots
       .filter((toot) => toot.in_reply_to_id === in_reply_to)
       .sort((a, b) => a.created_at.localeCompare(b.created_at));
-    tootsToRender.forEach((toot) => this.render_toot(toots, toot, depth));
+    tootsToRender.forEach((toot) => this.render_toot(toots, toot));
   }
 
-  render_toot(toots, toot, depth) {
+  render_toot(toots, toot) {
     toot.account.display_name = this.escapeHtml(toot.account.display_name);
     toot.account.emojis.forEach((emoji) => {
       toot.account.display_name = toot.account.display_name.replace(
@@ -244,7 +252,20 @@ class MastodonComments extends HTMLElement {
       );
     });
 
-    const mastodonComment = `<div class="mastodon-comment" style="margin-left: calc(var(--comment-indent) * ${depth})">
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        formatMatcher: 'basic'
+      }).replace(',', '').replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+    }
+
+    const mastodonComment = `
+      <article class="mastodon-comment">
         <div class="author">
           <div class="avatar">
             <img src="${this.escapeHtml(
@@ -261,27 +282,28 @@ class MastodonComments extends HTMLElement {
           </div>
           <a class="date" href="${
             toot.url
-          }" rel="nofollow">${toot.created_at.substr(
-            0,
-            10,
-          )} ${toot.created_at.substr(11, 8)}</a>
+          }" rel="nofollow">
+              <time datetime="${toot.created_at}">
+                ${formatDate(toot.created_at)}${toot.edited_at ? "*" : ""}
+              </time>
+          </a>
         </div>
         <div class="content">${toot.content}</div>
         <div class="attachments">
           ${toot.media_attachments
             .map((attachment) => {
               if (attachment.type === "image") {
-                return `<a href="${attachment.url}" rel="nofollow"><img src="${
+                return `<a href="${attachment.url}" rel="ugc nofollow"><img src="${
                   attachment.preview_url
-                }" alt="${this.escapeHtml(attachment.description)}" /></a>`;
+                }" alt="${this.escapeHtml(attachment.description)}" loading="lazy" /></a>`;
               } else if (attachment.type === "video") {
-                return `<video controls><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
+                return `<video controls preload="none"><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
               } else if (attachment.type === "gifv") {
                 return `<video autoplay loop muted playsinline><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
               } else if (attachment.type === "audio") {
                 return `<audio controls><source src="${attachment.url}" type="${attachment.mime_type}"></audio>`;
               } else {
-                return `<a href="${attachment.url}" rel="nofollow">${attachment.type}</a>`;
+                return `<a href="${attachment.url}" rel="ugc nofollow">${attachment.type}</a>`;
               }
             })
             .join("")}
@@ -289,18 +311,32 @@ class MastodonComments extends HTMLElement {
         <div class="status">
           ${this.toot_stats(toot)}
         </div>
-      </div>`;
+      </article>
+    `;
 
-    var div = document.createElement("div");
-    div.innerHTML =
+    var li = document.createElement("li");
+    li.setAttribute("id", toot.id)
+    li.innerHTML =
       typeof DOMPurify !== "undefined"
         ? DOMPurify.sanitize(mastodonComment.trim())
         : mastodonComment.trim();
+
+    if (toot.in_reply_to_id === this.tootId) {
     document
       .getElementById("mastodon-comments-list")
-      .appendChild(div.firstChild);
+        .appendChild(li);
+    } else {
+        const parentToot = toots.find(t => t.id === toot.in_reply_to_id);
+        if (parentToot) {
+            const ul = document.createElement('ul');
+            document
+              .getElementById(toot.in_reply_to_id)
+              .appendChild(ul)
+              .appendChild(li);
+        }
+    }
 
-    this.render_toots(toots, toot.id, depth + 1);
+    this.render_toots(toots, toot.id);
   }
 
   loadComments() {
