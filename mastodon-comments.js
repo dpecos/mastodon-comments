@@ -244,6 +244,18 @@ class MastodonComments extends HTMLElement {
       );
     });
 
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        formatMatcher: 'basic'
+      }).replace(',', '').replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+    }
+
     const mastodonComment = `<div class="mastodon-comment" style="margin-left: calc(var(--comment-indent) * ${depth})">
         <div class="author">
           <div class="avatar">
@@ -261,10 +273,11 @@ class MastodonComments extends HTMLElement {
           </div>
           <a class="date" href="${
             toot.url
-          }" rel="nofollow">${toot.created_at.substr(
-            0,
-            10,
-          )} ${toot.created_at.substr(11, 8)}</a>
+          }" rel="nofollow">
+              <time datetime="${toot.created_at}">
+                ${formatDate(toot.created_at)}${toot.edited_at ? "*" : ""}
+              </time>
+          </a>
         </div>
         <div class="content">${toot.content}</div>
         <div class="attachments">
