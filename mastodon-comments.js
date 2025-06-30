@@ -47,7 +47,6 @@ p {
   border-radius: var(--block-border-radius);
   border: var(--block-border-width) var(--block-border-color) solid;
   padding: 15px;
-  padding-bottom: 0px;
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -94,7 +93,7 @@ p {
 }
 
 .mastodon-comment .content {
-  margin: 0px 15px;
+  margin: 15px 0;
   line-height: 1.5em;
 }
 
