@@ -31,6 +31,15 @@ p {
 
 #mastodon-comments-list {
   margin: 0 auto;
+  padding: 0;
+}
+
+#mastodon-comments-list ul {
+  padding-left: var(--comment-indent);
+}
+
+#mastodon-comments-list li {
+  list-style: none;
 }
 
 .mastodon-comment {
@@ -158,7 +167,7 @@ class MastodonComments extends HTMLElement {
       <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
           href="https://${this.host}/@${this.user}/${this.tootId}">post</a>.
       </p>
-      <p id="mastodon-comments-list"></p>
+      <ul id="mastodon-comments-list"></ul>
     `;
 
     const comments = document.getElementById("mastodon-comments-list");
@@ -226,14 +235,14 @@ class MastodonComments extends HTMLElement {
     return result;
   }
 
-  render_toots(toots, in_reply_to, depth) {
+  render_toots(toots, in_reply_to) {
     var tootsToRender = toots
       .filter((toot) => toot.in_reply_to_id === in_reply_to)
       .sort((a, b) => a.created_at.localeCompare(b.created_at));
-    tootsToRender.forEach((toot) => this.render_toot(toots, toot, depth));
+    tootsToRender.forEach((toot) => this.render_toot(toots, toot));
   }
 
-  render_toot(toots, toot, depth) {
+  render_toot(toots, toot) {
     toot.account.display_name = this.escapeHtml(toot.account.display_name);
     toot.account.emojis.forEach((emoji) => {
       toot.account.display_name = toot.account.display_name.replace(
@@ -256,7 +265,8 @@ class MastodonComments extends HTMLElement {
       }).replace(',', '').replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
     }
 
-    const mastodonComment = `<div class="mastodon-comment" style="margin-left: calc(var(--comment-indent) * ${depth})">
+    const mastodonComment = `
+      <article class="mastodon-comment">
         <div class="author">
           <div class="avatar">
             <img src="${this.escapeHtml(
@@ -302,18 +312,32 @@ class MastodonComments extends HTMLElement {
         <div class="status">
           ${this.toot_stats(toot)}
         </div>
-      </div>`;
+      </article>
+    `;
 
-    var div = document.createElement("div");
-    div.innerHTML =
+    var li = document.createElement("li");
+    li.setAttribute("id", toot.id)
+    li.innerHTML =
       typeof DOMPurify !== "undefined"
         ? DOMPurify.sanitize(mastodonComment.trim())
         : mastodonComment.trim();
+
+    if (toot.in_reply_to_id === this.tootId) {
     document
       .getElementById("mastodon-comments-list")
-      .appendChild(div.firstChild);
+        .appendChild(li);
+    } else {
+        const parentToot = toots.find(t => t.id === toot.in_reply_to_id);
+        if (parentToot) {
+            const ul = document.createElement('ul');
+            document
+              .getElementById(toot.in_reply_to_id)
+              .appendChild(ul)
+              .appendChild(li);
+        }
+    }
 
-    this.render_toots(toots, toot.id, depth + 1);
+    this.render_toots(toots, toot.id);
   }
 
   loadComments() {
