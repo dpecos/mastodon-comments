@@ -164,7 +164,7 @@ class MastodonComments extends HTMLElement {
       </noscript>
 
       <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
-          href="https://${this.host}/@${this.user}/${this.tootId}">post</a>.
+          href="https://${this.host}/@${this.user}/${this.tootId}" rel="ugc">post</a>.
       </p>
       <ul id="mastodon-comments-list"></ul>
     `;
@@ -201,7 +201,7 @@ class MastodonComments extends HTMLElement {
       <div class="replies ${this.toot_active(toot, "replies")}">
         <a href="${
           toot.url
-        }" rel="nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
+        }" rel="ugc nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
           toot,
           "replies",
         )}</a>
@@ -293,17 +293,17 @@ class MastodonComments extends HTMLElement {
           ${toot.media_attachments
             .map((attachment) => {
               if (attachment.type === "image") {
-                return `<a href="${attachment.url}" rel="nofollow"><img src="${
+                return `<a href="${attachment.url}" rel="ugc nofollow"><img src="${
                   attachment.preview_url
-                }" alt="${this.escapeHtml(attachment.description)}" /></a>`;
+                }" alt="${this.escapeHtml(attachment.description)}" loading="lazy" /></a>`;
               } else if (attachment.type === "video") {
-                return `<video controls><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
+                return `<video controls preload="none"><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
               } else if (attachment.type === "gifv") {
                 return `<video autoplay loop muted playsinline><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
               } else if (attachment.type === "audio") {
                 return `<audio controls><source src="${attachment.url}" type="${attachment.mime_type}"></audio>`;
               } else {
-                return `<a href="${attachment.url}" rel="nofollow">${attachment.type}</a>`;
+                return `<a href="${attachment.url}" rel="ugc nofollow">${attachment.type}</a>`;
               }
             })
             .join("")}
