@@ -201,7 +201,7 @@ class MastodonComments extends HTMLElement {
       <div class="reblogs ${this.toot_active(toot, "reblogs")}">
         <a href="${
           toot.url
-        }" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
+        }/reblogs" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
           toot,
           "reblogs",
         )}</a>
@@ -209,7 +209,7 @@ class MastodonComments extends HTMLElement {
       <div class="favourites ${this.toot_active(toot, "favourites")}">
         <a href="${
           toot.url
-        }" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
+        }/favourites" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
           toot,
           "favourites",
         )}</a>
