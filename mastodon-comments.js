@@ -157,12 +157,6 @@ class MastodonComments extends HTMLElement {
       <div id="mastodon-stats"></div>
       <div id="mastodon-title">Comments</div>
 
-      <noscript>
-        <div id="error">
-          Please enable JavaScript to view the comments powered by the Fediverse.
-        </div>
-      </noscript>
-
       <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
           href="https://${this.host}/@${this.user}/${this.tootId}" rel="ugc">post</a>.
       </p>
