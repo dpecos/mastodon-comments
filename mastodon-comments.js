@@ -316,10 +316,11 @@ class MastodonComments extends HTMLElement {
 
     var li = document.createElement("li");
     li.setAttribute("id", toot.id)
-    li.innerHTML =
-      typeof DOMPurify !== "undefined"
-        ? DOMPurify.sanitize(mastodonComment.trim())
-        : mastodonComment.trim();
+
+    if (typeof DOMPurify === "undefined") {
+      throw new Error("DOMPurify is required to sanitize Mastodon comments.");
+    }
+    li.innerHTML = DOMPurify.sanitize(mastodonComment.trim());
 
     if (toot.in_reply_to_id === this.tootId) {
     document
