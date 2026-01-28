@@ -153,7 +153,16 @@ class MastodonComments extends HTMLElement {
   }
 
   connectedCallback() {
-    this.innerHTML = `
+  	if (typeof DOMPurify === "undefined") {
+  		this.innerHTML = `
+  		<p style="color: red">
+          Error: DOMPurify is not loaded, so comments will not be displayed safely.
+          Check your script implementation for purify.min.js.
+  		</p>
+  		`;
+  	}
+
+    this.innerHTML += `
       <div id="mastodon-stats"></div>
       <div id="mastodon-title">Comments</div>
 
@@ -310,11 +319,10 @@ class MastodonComments extends HTMLElement {
 
     var li = document.createElement("li");
     li.setAttribute("id", toot.id)
-
-    if (typeof DOMPurify === "undefined") {
-      throw new Error("DOMPurify is required to sanitize Mastodon comments.");
-    }
-    li.innerHTML = DOMPurify.sanitize(mastodonComment.trim());
+    li.innerHTML =
+      typeof DOMPurify !== "undefined"
+        ? DOMPurify.sanitize(mastodonComment.trim())
+        : mastodonComment.trim();
 
     if (toot.in_reply_to_id === this.tootId) {
     document
