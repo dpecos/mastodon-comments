@@ -224,6 +224,8 @@ class MastodonComments extends HTMLElement {
 		this.host = this.getAttribute("host");
 		this.user = this.getAttribute("user");
 		this.tootId = this.getAttribute("tootId");
+		this.tootAccountURI = null;
+		this.filterOnFavorited = this.getAttribute("filterOnFavorited") === "true";
 
 		this.commentsLoaded = false;
 
@@ -405,8 +407,26 @@ class MastodonComments extends HTMLElement {
 	}
 
 	render_toots(toots, in_reply_to) {
+		var filterFunction = function(element, index, array) {
+			var toot = element;
+			var keep = true;
+			keep &= toot.in_reply_to_id === in_reply_to;
+			if(this.filterOnFavorited) {
+				var valid = toot.account.uri == this.tootAccountURI; // Mark all toots from self as valid
+				if(!valid) { // Only fetch if needed.
+					fetch("https://" + (new URL(toot.url)).hostname + "/api/v1/statuses/" + toot.id + "/favourited_by")
+					.then((response) => response.json())
+					.then((data) => {
+						valid |= data.filter((acct) => acct.uri == this.tootAccountURI).length != 0
+					});
+				}
+				keep &= valid;
+			}
+			return keep;
+		};
+
 		var tootsToRender = toots
-			.filter((toot) => toot.in_reply_to_id === in_reply_to)
+			.filter(filterFunction)
 			.sort((a, b) => a.created_at.localeCompare(b.created_at));
 		tootsToRender.forEach((toot) => this.render_toot(toots, toot));
 	}
@@ -519,6 +539,7 @@ class MastodonComments extends HTMLElement {
 			.then((response) => response.json())
 			.then((toot) => {
 				this.querySelector("#mastodon-stats").innerHTML = this.toot_stats(toot);
+				this.tootAccountURI = toot.account.uri;
 			});
 
 		fetch(
