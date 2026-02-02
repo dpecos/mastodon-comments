@@ -138,151 +138,145 @@ p {
 `;
 
 class MastodonComments extends HTMLElement {
-  constructor() {
-    super();
+	constructor() {
+		super();
 
-    this.host = this.getAttribute("host");
-    this.user = this.getAttribute("user");
-    this.tootId = this.getAttribute("tootId");
+		this.host = this.getAttribute("host");
+		this.user = this.getAttribute("user");
+		this.tootId = this.getAttribute("tootId");
 
-    this.commentsLoaded = false;
+		this.commentsLoaded = false;
 
-    const styleElem = document.createElement("style");
-    styleElem.innerHTML = styles;
-    document.head.appendChild(styleElem);
-  }
+		const styleElem = document.createElement("style");
+		styleElem.innerHTML = styles;
+		document.head.appendChild(styleElem);
+	}
 
-  connectedCallback() {
-    this.innerHTML = `
+	connectedCallback() {
+		this.innerHTML = `
       <div id="mastodon-stats"></div>
       <div id="mastodon-title">Comments</div>
-
-      <noscript>
-        <div id="error">
-          Please enable JavaScript to view the comments powered by the Fediverse.
-        </div>
-      </noscript>
-
       <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
           href="https://${this.host}/@${this.user}/${this.tootId}" rel="ugc">post</a>.
       </p>
       <ul id="mastodon-comments-list"></ul>
     `;
 
-    const comments = document.getElementById("mastodon-comments-list");
-    const rootStyle = this.getAttribute("style");
-    if (rootStyle) {
-      comments.setAttribute("style", rootStyle);
-    }
-    this.respondToVisibility(comments, this.loadComments.bind(this));
-  }
+		const comments = document.getElementById("mastodon-comments-list");
+		const rootStyle = this.getAttribute("style");
+		if (rootStyle) {
+			comments.setAttribute("style", rootStyle);
+		}
+		this.respondToVisibility(comments, this.loadComments.bind(this));
+	}
 
-  escapeHtml(unsafe) {
-    return (unsafe || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+	escapeHtml(unsafe) {
+		return (unsafe || "")
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
+	}
 
-  toot_active(toot, what) {
-    var count = toot[what + "_count"];
-    return count > 0 ? "active" : "";
-  }
+	toot_active(toot, what) {
+		var count = toot[what + "_count"];
+		return count > 0 ? "active" : "";
+	}
 
-  toot_count(toot, what) {
-    var count = toot[what + "_count"];
-    return count > 0 ? count : "";
-  }
+	toot_count(toot, what) {
+		var count = toot[what + "_count"];
+		return count > 0 ? count : "";
+	}
 
-  toot_stats(toot) {
-    return `
+	toot_stats(toot) {
+		return `
       <div class="replies ${this.toot_active(toot, "replies")}">
         <a href="${
-          toot.url
-        }" rel="ugc nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
-          toot,
-          "replies",
-        )}</a>
+					toot.url
+				}" rel="ugc nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
+					toot,
+					"replies",
+				)}</a>
       </div>
       <div class="reblogs ${this.toot_active(toot, "reblogs")}">
         <a href="${
-          toot.url
-        }/reblogs" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
-          toot,
-          "reblogs",
-        )}</a>
+					toot.url
+				}/reblogs" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
+					toot,
+					"reblogs",
+				)}</a>
       </div>
       <div class="favourites ${this.toot_active(toot, "favourites")}">
         <a href="${
-          toot.url
-        }/favourites" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
-          toot,
-          "favourites",
-        )}</a>
+					toot.url
+				}/favourites" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
+					toot,
+					"favourites",
+				)}</a>
       </div>
     `;
-  }
+	}
 
-  user_account(account) {
-    var result = `@${account.acct}`;
-    if (account.acct.indexOf("@") === -1) {
-      var domain = new URL(account.url);
-      result += `@${domain.hostname}`;
-    }
-    return result;
-  }
+	user_account(account) {
+		var result = `@${account.acct}`;
+		if (account.acct.indexOf("@") === -1) {
+			var domain = new URL(account.url);
+			result += `@${domain.hostname}`;
+		}
+		return result;
+	}
 
-  render_toots(toots, in_reply_to) {
-    var tootsToRender = toots
-      .filter((toot) => toot.in_reply_to_id === in_reply_to)
-      .sort((a, b) => a.created_at.localeCompare(b.created_at));
-    tootsToRender.forEach((toot) => this.render_toot(toots, toot));
-  }
+	render_toots(toots, in_reply_to) {
+		var tootsToRender = toots
+			.filter((toot) => toot.in_reply_to_id === in_reply_to)
+			.sort((a, b) => a.created_at.localeCompare(b.created_at));
+		tootsToRender.forEach((toot) => this.render_toot(toots, toot));
+	}
 
-  render_toot(toots, toot) {
-    toot.account.display_name = this.escapeHtml(toot.account.display_name);
-    toot.account.emojis.forEach((emoji) => {
-      toot.account.display_name = toot.account.display_name.replace(
-        `:${emoji.shortcode}:`,
-        `<img src="${this.escapeHtml(emoji.static_url)}" alt="Emoji ${
-          emoji.shortcode
-        }" height="20" width="20" />`,
-      );
-    });
+	render_toot(toots, toot) {
+		toot.account.display_name = this.escapeHtml(toot.account.display_name);
+		toot.account.emojis.forEach((emoji) => {
+			toot.account.display_name = toot.account.display_name.replace(
+				`:${emoji.shortcode}:`,
+				`<img src="${this.escapeHtml(emoji.static_url)}" alt="Emoji ${
+					emoji.shortcode
+				}" height="20" width="20" />`,
+			);
+		});
 
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-        formatMatcher: 'basic'
-      }).replace(',', '').replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
-    }
+		const formatDate = (dateString) => {
+			return new Date(dateString)
+				.toLocaleString("en-US", {
+					year: "numeric",
+					month: "2-digit",
+					day: "2-digit",
+					hour: "2-digit",
+					minute: "2-digit",
+					hour12: false,
+					formatMatcher: "basic",
+				})
+				.replace(",", "")
+				.replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$1-$2");
+		};
 
-    const mastodonComment = `
+		const mastodonComment = `
       <article class="mastodon-comment">
         <div class="author">
           <div class="avatar">
             <img src="${this.escapeHtml(
-              toot.account.avatar_static,
-            )}" height=60 width=60 alt="">
+							toot.account.avatar_static,
+						)}" height=60 width=60 alt="">
           </div>
           <div class="details">
             <a class="name" href="${toot.account.url}" rel="nofollow">${
-              toot.account.display_name
-            }</a>
+							toot.account.display_name
+						}</a>
             <a class="user" href="${
-              toot.account.url
-            }" rel="nofollow">${this.user_account(toot.account)}</a>
+							toot.account.url
+						}" rel="nofollow">${this.user_account(toot.account)}</a>
           </div>
-          <a class="date" href="${
-            toot.url
-          }" rel="nofollow">
+          <a class="date" href="${toot.url}" rel="nofollow">
               <time datetime="${toot.created_at}">
                 ${formatDate(toot.created_at)}${toot.edited_at ? "*" : ""}
               </time>
@@ -291,22 +285,22 @@ class MastodonComments extends HTMLElement {
         <div class="content">${toot.content}</div>
         <div class="attachments">
           ${toot.media_attachments
-            .map((attachment) => {
-              if (attachment.type === "image") {
-                return `<a href="${attachment.url}" rel="ugc nofollow"><img src="${
-                  attachment.preview_url
-                }" alt="${this.escapeHtml(attachment.description)}" loading="lazy" /></a>`;
-              } else if (attachment.type === "video") {
-                return `<video controls preload="none"><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
-              } else if (attachment.type === "gifv") {
-                return `<video autoplay loop muted playsinline><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
-              } else if (attachment.type === "audio") {
-                return `<audio controls><source src="${attachment.url}" type="${attachment.mime_type}"></audio>`;
-              } else {
-                return `<a href="${attachment.url}" rel="ugc nofollow">${attachment.type}</a>`;
-              }
-            })
-            .join("")}
+						.map((attachment) => {
+							if (attachment.type === "image") {
+								return `<a href="${attachment.url}" rel="ugc nofollow"><img src="${
+									attachment.preview_url
+								}" alt="${this.escapeHtml(attachment.description)}" loading="lazy" /></a>`;
+							} else if (attachment.type === "video") {
+								return `<video controls preload="none"><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
+							} else if (attachment.type === "gifv") {
+								return `<video autoplay loop muted playsinline><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
+							} else if (attachment.type === "audio") {
+								return `<audio controls><source src="${attachment.url}" type="${attachment.mime_type}"></audio>`;
+							} else {
+								return `<a href="${attachment.url}" rel="ugc nofollow">${attachment.type}</a>`;
+							}
+						})
+						.join("")}
         </div>
         <div class="status">
           ${this.toot_stats(toot)}
@@ -314,82 +308,80 @@ class MastodonComments extends HTMLElement {
       </article>
     `;
 
-    var li = document.createElement("li");
-    li.setAttribute("id", toot.id)
-    li.innerHTML =
-      typeof DOMPurify !== "undefined"
-        ? DOMPurify.sanitize(mastodonComment.trim())
-        : mastodonComment.trim();
+		var li = document.createElement("li");
+		li.setAttribute("id", toot.id);
+		li.innerHTML =
+			typeof DOMPurify !== "undefined"
+				? DOMPurify.sanitize(mastodonComment.trim())
+				: mastodonComment.trim();
 
-    if (toot.in_reply_to_id === this.tootId) {
-    document
-      .getElementById("mastodon-comments-list")
-        .appendChild(li);
-    } else {
-        const parentToot = toots.find(t => t.id === toot.in_reply_to_id);
-        if (parentToot) {
-            const ul = document.createElement('ul');
-            document
-              .getElementById(toot.in_reply_to_id)
-              .appendChild(ul)
-              .appendChild(li);
-        }
-    }
+		if (toot.in_reply_to_id === this.tootId) {
+			document.getElementById("mastodon-comments-list").appendChild(li);
+		} else {
+			const parentToot = toots.find((t) => t.id === toot.in_reply_to_id);
+			if (parentToot) {
+				const ul = document.createElement("ul");
+				document
+					.getElementById(toot.in_reply_to_id)
+					.appendChild(ul)
+					.appendChild(li);
+			}
+		}
 
-    this.render_toots(toots, toot.id);
-  }
+		this.render_toots(toots, toot.id);
+	}
 
-  loadComments() {
-    if (this.commentsLoaded) return;
+	loadComments() {
+		if (this.commentsLoaded) return;
 
-    document.getElementById("mastodon-comments-list").innerHTML =
-      "Loading comments from the Fediverse...";
+		document.getElementById("mastodon-comments-list").innerHTML =
+			"Loading comments from the Fediverse...";
 
-    let _this = this;
+		let _this = this;
 
-    fetch("https://" + this.host + "/api/v1/statuses/" + this.tootId)
-      .then((response) => response.json())
-      .then((toot) => {
-        document.getElementById("mastodon-stats").innerHTML =
-          this.toot_stats(toot);
-      });
+		fetch("https://" + this.host + "/api/v1/statuses/" + this.tootId)
+			.then((response) => response.json())
+			.then((toot) => {
+				document.getElementById("mastodon-stats").innerHTML =
+					this.toot_stats(toot);
+			});
 
-    fetch(
-      "https://" + this.host + "/api/v1/statuses/" + this.tootId + "/context",
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (
-          data["descendants"] &&
-          Array.isArray(data["descendants"]) &&
-          data["descendants"].length > 0
-        ) {
-          document.getElementById("mastodon-comments-list").innerHTML = "";
-          _this.render_toots(data["descendants"], _this.tootId, 0);
-        } else {
-          document.getElementById("mastodon-comments-list").innerHTML =
-            "<p>No comments found</p>";
-        }
+		fetch(
+			"https://" + this.host + "/api/v1/statuses/" + this.tootId + "/context",
+		)
+			.then((response) => response.json())
+			.then((data) => {
+				if (
+					data["descendants"] &&
+					Array.isArray(data["descendants"]) &&
+					data["descendants"].length > 0
+				) {
+					document.getElementById("mastodon-comments-list").innerHTML = "";
+					_this.render_toots(data["descendants"], _this.tootId, 0);
+				} else {
+					document.getElementById("mastodon-comments-list").innerHTML =
+						"<p>No comments found</p>";
+				}
 
-        _this.commentsLoaded = true;
-      });
-  }
+				_this.commentsLoaded = true;
+			});
+	}
 
-  respondToVisibility(element, callback) {
-    var options = {
-      root: null,
-    };
+	respondToVisibility(element, callback) {
+		var options = {
+			root: null,
+		};
 
-    var observer = new IntersectionObserver((entries, observer) => {
-      entries.forEach((entry) => {
-        if (entry.intersectionRatio > 0) {
-          callback();
-        }
-      });
-    }, options);
+		var observer = new IntersectionObserver((entries, observer) => {
+			entries.forEach((entry) => {
+				if (entry.intersectionRatio > 0) {
+					callback();
+				}
+			});
+		}, options);
 
-    observer.observe(element);
-  }
+		observer.observe(element);
+	}
 }
 
 customElements.define("mastodon-comments", MastodonComments);
