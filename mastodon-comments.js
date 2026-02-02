@@ -7,8 +7,25 @@ const styles = `
   --block-border-radius: 3px;
   --block-border-color: #ededf0;
   --block-background-color: #f7f8f8;
+  --dialog-background-color: #ffffff;
 
   --comment-indent: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --font-color: #d1d1d1;
+    --block-border-color: #3e3e3e;
+    --block-background-color: #1e1e1e;
+    --dialog-background-color: #2d2d2d;
+  }
+}
+
+[data-theme="dark"] {
+  --font-color: #d1d1d1;
+  --block-border-color: #3e3e3e;
+  --block-background-color: #1e1e1e;
+  --dialog-background-color: #2d2d2d;
 }
 
 mastodon-comments {
@@ -135,6 +152,69 @@ p {
 .mastodon-comment .status .favourites.active a, #mastodon-stats .favourites.active a {
   color: #ca8f04;
 }
+
+dialog {
+  border: none;
+  border-radius: var(--block-border-radius);
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  color: var(--font-color);
+  background-color: var(--dialog-background-color);
+}
+
+dialog::backdrop {
+  background: rgba(0,0,0,0.5);
+}
+
+dialog h3 {
+  margin-top: 0;
+}
+
+dialog #close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--font-color);
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.input-row input {
+  flex-grow: 1;
+  padding: 8px;
+  border: 1px solid var(--block-border-color);
+  border-radius: var(--block-border-radius);
+  background-color: var(--block-background-color);
+  color: var(--font-color);
+}
+
+.button {
+  padding: 8px 16px;
+  background-color: #595aff;
+  color: white;
+  border: none;
+  border-radius: var(--block-border-radius);
+  cursor: pointer;
+}
+
+#add-comment {
+  display: block;
+  margin: 10px 0;
+}
+
+.button:hover {
+  background-color: #4849ff;
+}
 `;
 
 class MastodonComments extends HTMLElement {
@@ -147,27 +227,124 @@ class MastodonComments extends HTMLElement {
 
 		this.commentsLoaded = false;
 
-		const styleElem = document.createElement("style");
-		styleElem.innerHTML = styles;
-		document.head.appendChild(styleElem);
+		if (!document.getElementById("mastodon-comments-styles")) {
+			const styleElem = document.createElement("style");
+			styleElem.id = "mastodon-comments-styles";
+			styleElem.innerHTML = styles;
+			document.head.appendChild(styleElem);
+		}
 	}
 
 	connectedCallback() {
+		this.mastodonPostUrl = `https://${this.host}/@${this.user}/${this.tootId}`;
+
 		this.innerHTML = `
       <div id="mastodon-stats"></div>
       <div id="mastodon-title">Comments</div>
       <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
-          href="https://${this.host}/@${this.user}/${this.tootId}" rel="ugc">post</a>.
+          href="${this.mastodonPostUrl}" rel="ugc">post</a>.
+          <button id="add-comment" class="button">Reply</button>
       </p>
+
       <ul id="mastodon-comments-list"></ul>
+
+      <dialog id="comment-dialog">
+        <h3>Reply to this post</h3>
+        <button title="Cancel" id="close">&times;</button>
+        <p>
+          Comments are powered by Mastodon. With an account on Mastodon (or elsewhere on the Fediverse), you can respond to this post. Simply enter your mastodon instance below, and add a reply:
+        </p>
+        <div class="input-row">
+          <input type="text" inputmode="url" autocapitalize="none" autocomplete="off" value="${
+						this.escapeHtml(localStorage.getItem("mastodonUrl")) ?? ""
+					}" id="instanceName" placeholder="mastodon.social">
+          <button class="button" id="go">Go</button>
+        </div>
+        <p>Alternatively, copy this URL and paste it into the search bar of your Mastodon app:</p>
+        <div class="input-row">
+          <input type="text" readonly id="copyInput" value="${
+						this.mastodonPostUrl
+					}">
+          <button class="button" id="copy">Copy</button>
+        </div>
+      </dialog>
     `;
 
-		const comments = document.getElementById("mastodon-comments-list");
+		const comments = this.querySelector("#mastodon-comments-list");
 		const rootStyle = this.getAttribute("style");
 		if (rootStyle) {
 			comments.setAttribute("style", rootStyle);
 		}
 		this.respondToVisibility(comments, this.loadComments.bind(this));
+
+		this.initDialog();
+	}
+
+	initDialog() {
+		const dialog = this.querySelector("#comment-dialog");
+		const addCommentBtn = this.querySelector("#add-comment");
+		const closeBtn = this.querySelector("#close");
+		const goBtn = this.querySelector("#go");
+		const copyBtn = this.querySelector("#copy");
+		const instanceNameInput = this.querySelector("#instanceName");
+		const copyInput = this.querySelector("#copyInput");
+
+		addCommentBtn.addEventListener("click", () => {
+			dialog.showModal();
+		});
+
+		closeBtn.addEventListener("click", () => {
+			dialog.close();
+		});
+
+		dialog.addEventListener("keydown", (e) => {
+			if (e.key === "Escape") {
+				dialog.close();
+			}
+		});
+
+		dialog.addEventListener("click", (event) => {
+			var rect = dialog.getBoundingClientRect();
+			var isInDialog =
+				rect.top <= event.clientY &&
+				event.clientY <= rect.top + rect.height &&
+				rect.left <= event.clientX &&
+				event.clientX <= rect.left + rect.width;
+			if (!isInDialog) {
+				dialog.close();
+			}
+		});
+
+		goBtn.addEventListener("click", () => {
+			let url = instanceNameInput.value.trim();
+			if (url === "") {
+				window.alert("Please provide the name of your instance");
+				return;
+			}
+			localStorage.setItem("mastodonUrl", url);
+			if (!url.startsWith("https://")) {
+				url = `https://${url}`;
+			}
+			window.open(
+				`${url}/authorize_interaction?uri=${this.mastodonPostUrl}`,
+				"_blank",
+			);
+		});
+
+		instanceNameInput.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") {
+				goBtn.dispatchEvent(new Event("click"));
+			}
+		});
+
+		copyBtn.addEventListener("click", () => {
+			copyInput.select();
+			navigator.clipboard.writeText(this.mastodonPostUrl);
+			copyBtn.innerHTML = "Copied!";
+			window.setTimeout(() => {
+				copyBtn.innerHTML = "Copy";
+			}, 1000);
+		});
 	}
 
 	escapeHtml(unsafe) {
@@ -316,13 +493,12 @@ class MastodonComments extends HTMLElement {
 				: mastodonComment.trim();
 
 		if (toot.in_reply_to_id === this.tootId) {
-			document.getElementById("mastodon-comments-list").appendChild(li);
+			this.querySelector("#mastodon-comments-list").appendChild(li);
 		} else {
 			const parentToot = toots.find((t) => t.id === toot.in_reply_to_id);
 			if (parentToot) {
 				const ul = document.createElement("ul");
-				document
-					.getElementById(toot.in_reply_to_id)
+				this.querySelector(`[id="${toot.in_reply_to_id}"]`)
 					.appendChild(ul)
 					.appendChild(li);
 			}
@@ -334,7 +510,7 @@ class MastodonComments extends HTMLElement {
 	loadComments() {
 		if (this.commentsLoaded) return;
 
-		document.getElementById("mastodon-comments-list").innerHTML =
+		this.querySelector("#mastodon-comments-list").innerHTML =
 			"Loading comments from the Fediverse...";
 
 		let _this = this;
@@ -342,8 +518,7 @@ class MastodonComments extends HTMLElement {
 		fetch("https://" + this.host + "/api/v1/statuses/" + this.tootId)
 			.then((response) => response.json())
 			.then((toot) => {
-				document.getElementById("mastodon-stats").innerHTML =
-					this.toot_stats(toot);
+				this.querySelector("#mastodon-stats").innerHTML = this.toot_stats(toot);
 			});
 
 		fetch(
@@ -356,10 +531,10 @@ class MastodonComments extends HTMLElement {
 					Array.isArray(data["descendants"]) &&
 					data["descendants"].length > 0
 				) {
-					document.getElementById("mastodon-comments-list").innerHTML = "";
+					this.querySelector("#mastodon-comments-list").innerHTML = "";
 					_this.render_toots(data["descendants"], _this.tootId, 0);
 				} else {
-					document.getElementById("mastodon-comments-list").innerHTML =
+					this.querySelector("#mastodon-comments-list").innerHTML =
 						"<p>No comments found</p>";
 				}
 
