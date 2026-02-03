@@ -224,10 +224,10 @@ class MastodonComments extends HTMLElement {
 		this.host = this.getAttribute("host");
 		this.user = this.getAttribute("user");
 		this.tootId = this.getAttribute("tootId");
-		this.tootAccountURI = null;
 		this.filterOnFavorited = this.getAttribute("filterOnFavorited") === "true";
 
 		this.commentsLoaded = false;
+		this.tootAccountURI = null;
 
 		if (!document.getElementById("mastodon-comments-styles")) {
 			const styleElem = document.createElement("style");
