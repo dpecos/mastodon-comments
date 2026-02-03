@@ -224,7 +224,7 @@ class MastodonComments extends HTMLElement {
 		this.host = this.getAttribute("host");
 		this.user = this.getAttribute("user");
 		this.tootId = this.getAttribute("tootId");
-		this.filterOnFavorited = this.getAttribute("filterOnFavorited") === "true";
+		this.filter = this.getAttribute("filter");
 
 		this.commentsLoaded = false;
 		this.tootAccountURI = null;
@@ -411,7 +411,7 @@ class MastodonComments extends HTMLElement {
 			var toot = element;
 			var keep = true;
 			keep &= toot.in_reply_to_id === in_reply_to;
-			if(this.filterOnFavorited && this.tootAccountURI !== null) {
+			if(this.filter == "favorites" && this.tootAccountURI !== null) {
 				var valid = toot.account.uri == this.tootAccountURI; // Mark all toots from self as valid
 				if(!valid && toot.favourites_count != 0) { // Only fetch if needed.
 					fetch("https://" + (new URL(toot.url)).hostname + "/api/v1/statuses/" + toot.id + "/favourited_by")
