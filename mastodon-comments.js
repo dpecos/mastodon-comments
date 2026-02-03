@@ -411,9 +411,9 @@ class MastodonComments extends HTMLElement {
 			var toot = element;
 			var keep = true;
 			keep &= toot.in_reply_to_id === in_reply_to;
-			if(this.filterOnFavorited && this.tootAccountURI !== null && toot.favourites_count != 0) {
+			if(this.filterOnFavorited && this.tootAccountURI !== null) {
 				var valid = toot.account.uri == this.tootAccountURI; // Mark all toots from self as valid
-				if(!valid) { // Only fetch if needed.
+				if(!valid && toot.favourites_count != 0) { // Only fetch if needed.
 					fetch("https://" + (new URL(toot.url)).hostname + "/api/v1/statuses/" + toot.id + "/favourited_by")
 					.then((response) => response.json())
 					.then((data) => {
