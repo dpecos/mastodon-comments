@@ -407,8 +407,7 @@ class MastodonComments extends HTMLElement {
 	}
 
 	render_toots(toots, in_reply_to) {
-		var filterFunction = function(element, index, array) {
-			var toot = element;
+		var filterFunction = function(toot) { // params: element, index, array
 			var keep = true;
 			keep &= toot.in_reply_to_id === in_reply_to;
 			if(this.filter == "favorites" && this.tootAccountURI !== null) {
