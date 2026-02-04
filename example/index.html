@@ -31,6 +31,17 @@
         mastodon-comments {
           --comment-indent: 0px;
         }
+        .mastodon-comment .author {
+          flex-wrap: wrap;
+          align-items: flex-start;
+        }
+        .mastodon-comment .author .date {
+          margin-left: 0;
+          margin-top: 0.25rem;
+          width: 100%;
+          text-align: right;
+          white-space: normal;
+        }         
       }
       body {
         font-family: sans-serif;
@@ -41,6 +52,6 @@
   <body>
     <h1>Mastodon Comments Webcomponent</h1>
 
-    <mastodon-comments host="fosstodon.org" user="dpecos" tootId="109574160582937075" style="max-width : 1024px"></mastodon-comments>
+    <mastodon-comments host="fosstodon.org" user="dpecos" tootId="109574160582937075" style="max-width: 1024px"></mastodon-comments>
   </body>
 </html>
