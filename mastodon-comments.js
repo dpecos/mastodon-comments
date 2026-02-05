@@ -154,9 +154,6 @@ p {
 }
 
 @media only screen and (max-width: 640px) {
-  mastodon-comments {
-    --comment-indent: 0px;
-  }
   .mastodon-comment .author {
     flex-wrap: wrap;
     align-items: flex-start;
