@@ -153,6 +153,24 @@ p {
   color: #ca8f04;
 }
 
+@media only screen and (max-width: 640px) {
+  mastodon-comments {
+    --comment-indent: 0px;
+  }
+  .mastodon-comment .author {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .mastodon-comment .author .date {
+    margin-left: 0;
+    margin-top: 0.25rem;
+    width: 100%;
+    text-align: right; /* or left/center as you like */
+    white-space: normal; /* allow wrapping */
+  } 
+}
+
 dialog {
   border: none;
   border-radius: var(--block-border-radius);
