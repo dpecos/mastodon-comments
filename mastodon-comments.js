@@ -438,19 +438,21 @@ class MastodonComments extends HTMLElement {
 			);
 		});
 
+		const formatter = new Intl.DateTimeFormat("en-US", {
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+			formatMatcher: "basic",
+		});
+
 		const formatDate = (dateString) => {
-			return new Date(dateString)
-				.toLocaleString("en-US", {
-					year: "numeric",
-					month: "2-digit",
-					day: "2-digit",
-					hour: "2-digit",
-					minute: "2-digit",
-					hour12: false,
-					formatMatcher: "basic",
-				})
+			return formatter
+				.format(new Date(dateString))
 				.replace(",", "")
-				.replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$1-$2");
+				.replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$1-$2"); // only necessary when dealing with "en-US" locale
 		};
 
 		const mastodonComment = `
