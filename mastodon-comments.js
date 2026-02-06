@@ -155,17 +155,18 @@ p {
 
 @media only screen and (max-width: 640px) {
   .mastodon-comment .author {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: flex-start;
   }
 
   .mastodon-comment .author .date {
     margin-left: 0;
-    margin-top: 0.25rem;
-    width: 100%;
-    text-align: right; /* or left/center as you like */
-    white-space: normal; /* allow wrapping */
-  } 
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
 }
 
 dialog {
@@ -470,7 +471,7 @@ class MastodonComments extends HTMLElement {
           </div>
           <a class="date" href="${toot.url}" rel="nofollow">
               <time datetime="${toot.created_at}">
-                ${formatDate(toot.created_at)}${toot.edited_at ? "*" : ""}
+                ${formatDate(toot.created_at)}${toot.edited_at ? " (*)" : ""}
               </time>
           </a>
         </div>
