@@ -243,6 +243,8 @@ class MastodonComments extends HTMLElement {
 
 		this.commentsLoaded = false;
 
+		this.elements = {};
+
 		this.dateFormatter = new Intl.DateTimeFormat("en-US", {
 			year: "numeric",
 			month: "2-digit",
@@ -256,7 +258,7 @@ class MastodonComments extends HTMLElement {
 		if (!document.getElementById("mastodon-comments-styles")) {
 			const styleElem = document.createElement("style");
 			styleElem.id = "mastodon-comments-styles";
-			styleElem.innerHTML = styles;
+			styleElem.textContent = styles;
 			document.head.appendChild(styleElem);
 		}
 	}
@@ -296,13 +298,15 @@ class MastodonComments extends HTMLElement {
       </dialog>
     `;
 
-		const comments = this.querySelector("#mastodon-comments-list");
+		this.elements.commentsList = this.querySelector("#mastodon-comments-list");
+		this.elements.stats = this.querySelector("#mastodon-stats");
+
 		const rootStyle = this.getAttribute("style");
 		if (rootStyle) {
-			comments.setAttribute("style", rootStyle);
+			this.elements.commentsList.setAttribute("style", rootStyle);
 		}
-		this.respondToVisibility(comments, this.loadComments.bind(this));
 
+		this.respondToVisibility(this.elements.commentsList, this.loadComments.bind(this));
 		this.initDialog();
 	}
 
@@ -316,11 +320,11 @@ class MastodonComments extends HTMLElement {
 		const copyInput = this.querySelector("#copyInput");
 
 		addCommentBtn.addEventListener("click", () => {
-			dialog.showModal();
+			dialog.showModal()
 		});
 
 		closeBtn.addEventListener("click", () => {
-			dialog.close();
+			dialog.close()
 		});
 
 		dialog.addEventListener("keydown", (e) => {
@@ -330,20 +334,20 @@ class MastodonComments extends HTMLElement {
 		});
 
 		dialog.addEventListener("click", (event) => {
-			var rect = dialog.getBoundingClientRect();
-			var isInDialog =
-				rect.top <= event.clientY &&
-				event.clientY <= rect.top + rect.height &&
-				rect.left <= event.clientX &&
-				event.clientX <= rect.left + rect.width;
+			const rect = dialog.getBoundingClientRect();
+			const isInDialog =
+					rect.top <= event.clientY &&
+					event.clientY <= rect.top + rect.height &&
+					rect.left <= event.clientX &&
+					event.clientX <= rect.left + rect.width;
 			if (!isInDialog) {
 				dialog.close();
 			}
 		});
 
 		goBtn.addEventListener("click", () => {
-			let url = instanceNameInput.value.trim();
-			if (url === "") {
+			const url = instanceNameInput.value.trim();
+			if (!url) {
 				window.alert("Please provide the name of your instance");
 				return;
 			}
@@ -353,7 +357,7 @@ class MastodonComments extends HTMLElement {
 			}
 			window.open(
 				`${url}/authorize_interaction?uri=${this.mastodonPostUrl}`,
-				"_blank",
+				"_blank", "noopener,noreferrer"
 			);
 		});
 
@@ -366,15 +370,16 @@ class MastodonComments extends HTMLElement {
 		copyBtn.addEventListener("click", () => {
 			copyInput.select();
 			navigator.clipboard.writeText(this.mastodonPostUrl);
-			copyBtn.innerHTML = "Copied!";
+			copyBtn.textContent = "Copied!";
 			window.setTimeout(() => {
-				copyBtn.innerHTML = "Copy";
+				copyBtn.textContent = "Copy";
 			}, 1000);
 		});
 	}
 
 	escapeHtml(unsafe) {
-		return (unsafe || "")
+		if (!unsafe) return "";		
+		return String(unsafe)
 			.replace(/&/g, "&amp;")
 			.replace(/</g, "&lt;")
 			.replace(/>/g, "&gt;")
@@ -396,36 +401,36 @@ class MastodonComments extends HTMLElement {
 		return `
       <div class="replies ${this.toot_active(toot, "replies")}">
         <a href="${
-					toot.url
+					this.escapeHtml(toot.url)
 				}" rel="ugc nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
 					toot,
-					"replies",
+					"replies"
 				)}</a>
       </div>
       <div class="reblogs ${this.toot_active(toot, "reblogs")}">
         <a href="${
-					toot.url
+					this.escapeHtml(toot.url)
 				}/reblogs" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
 					toot,
-					"reblogs",
+					"reblogs"
 				)}</a>
       </div>
       <div class="favourites ${this.toot_active(toot, "favourites")}">
         <a href="${
-					toot.url
+					this.escapeHtml(toot.url)
 				}/favourites" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
 					toot,
-					"favourites",
+					"favourites"
 				)}</a>
       </div>
     `;
 	}
 
 	user_account(account) {
-		var result = `@${account.acct}`;
+		let result = `@${this.escapeHtml(account.acct)}`;
 		if (account.acct.indexOf("@") === -1) {
-			var domain = new URL(account.url);
-			result += `@${domain.hostname}`;
+			const domain = new URL(account.url);
+			result += `@${this.escapeHtml(domain.hostname)}`;
 		}
 		return result;
 	}
@@ -438,7 +443,7 @@ class MastodonComments extends HTMLElement {
 	}	
 
 	render_toots(toots, in_reply_to) {
-		var tootsToRender = toots
+		const tootsToRender = toots
 			.filter((toot) => toot.in_reply_to_id === in_reply_to)
 			.sort((a, b) => a.created_at.localeCompare(b.created_at));
 		tootsToRender.forEach((toot) => this.render_toot(toots, toot));
@@ -479,23 +484,22 @@ class MastodonComments extends HTMLElement {
         </div>
         <div class="content">${toot.content}</div>
         <div class="attachments">
-          ${toot.media_attachments
-						.map((attachment) => {
-							if (attachment.type === "image") {
-								return `<a href="${attachment.url}" rel="ugc nofollow"><img src="${
-									attachment.preview_url
-								}" alt="${this.escapeHtml(attachment.description)}" loading="lazy" /></a>`;
-							} else if (attachment.type === "video") {
-								return `<video controls preload="none"><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
-							} else if (attachment.type === "gifv") {
-								return `<video autoplay loop muted playsinline><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
-							} else if (attachment.type === "audio") {
-								return `<audio controls><source src="${attachment.url}" type="${attachment.mime_type}"></audio>`;
-							} else {
-								return `<a href="${attachment.url}" rel="ugc nofollow">${attachment.type}</a>`;
-							}
-						})
-						.join("")}
+		${toot.media_attachments
+			.map((attachment) => {
+				switch (attachment.type) {
+					case "image":
+						return `<a href="${attachment.url}" rel="ugc nofollow"><img src="${attachment.preview_url}" alt="${this.escapeHtml(attachment.description)}" loading="lazy" /></a>`;
+					case "video":
+						return `<video controls preload="none"><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
+					case "gifv":
+						return `<video autoplay loop muted playsinline><source src="${attachment.url}" type="${attachment.mime_type}"></video>`;
+					case "audio":
+						return `<audio controls><source src="${attachment.url}" type="${attachment.mime_type}"></audio>`;
+					default:
+						return `<a href="${attachment.url}" rel="ugc nofollow">${attachment.type}</a>`;
+				}
+			})
+			.join("")}
         </div>
         <div class="status">
           ${this.toot_stats(toot)}
@@ -503,7 +507,7 @@ class MastodonComments extends HTMLElement {
       </article>
     `;
 
-		var li = document.createElement("li");
+		const li = document.createElement("li");
 		li.setAttribute("id", toot.id);
 		li.innerHTML =
 			typeof DOMPurify !== "undefined"
@@ -511,7 +515,7 @@ class MastodonComments extends HTMLElement {
 				: mastodonComment.trim();
 
 		if (toot.in_reply_to_id === this.tootId) {
-			this.querySelector("#mastodon-comments-list").appendChild(li);
+			this.elements.commentsList.appendChild(li);
 		} else {
 			const parentToot = toots.find((t) => t.id === toot.in_reply_to_id);
 			if (parentToot) {
@@ -528,15 +532,14 @@ class MastodonComments extends HTMLElement {
 	loadComments() {
 		if (this.commentsLoaded) return;
 
-		this.querySelector("#mastodon-comments-list").innerHTML =
-			"Loading comments from the Fediverse...";
+		this.elements.commentsList.textContent = "Loading comments from the Fediverse...";
 
 		let _this = this;
 
 		fetch("https://" + this.host + "/api/v1/statuses/" + this.tootId)
 			.then((response) => response.json())
 			.then((toot) => {
-				this.querySelector("#mastodon-stats").innerHTML = this.toot_stats(toot);
+				this.elements.stats.innerHTML = this.toot_stats(toot);
 			});
 
 		fetch(
@@ -549,11 +552,10 @@ class MastodonComments extends HTMLElement {
 					Array.isArray(data["descendants"]) &&
 					data["descendants"].length > 0
 				) {
-					this.querySelector("#mastodon-comments-list").innerHTML = "";
+					this.elements.commentsList.textContent = "";
 					_this.render_toots(data["descendants"], _this.tootId, 0);
 				} else {
-					this.querySelector("#mastodon-comments-list").innerHTML =
-						"<p>No comments found</p>";
+					this.elements.commentsList.innerHTML = "<p>No comments found</p>";
 				}
 
 				_this.commentsLoaded = true;
