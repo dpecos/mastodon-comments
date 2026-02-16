@@ -243,6 +243,16 @@ class MastodonComments extends HTMLElement {
 
 		this.commentsLoaded = false;
 
+		this.dateFormatter = new Intl.DateTimeFormat("en-US", {
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+			formatMatcher: "basic",
+		});
+
 		if (!document.getElementById("mastodon-comments-styles")) {
 			const styleElem = document.createElement("style");
 			styleElem.id = "mastodon-comments-styles";
@@ -420,6 +430,13 @@ class MastodonComments extends HTMLElement {
 		return result;
 	}
 
+	formatDate(dateString) {
+		return this.dateFormatter
+			.format(new Date(dateString))
+			.replace(",", "")
+			.replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$1-$2"); // only necessary when dealing with "en-US" locale
+	}	
+
 	render_toots(toots, in_reply_to) {
 		var tootsToRender = toots
 			.filter((toot) => toot.in_reply_to_id === in_reply_to)
@@ -437,23 +454,6 @@ class MastodonComments extends HTMLElement {
 				}" height="20" width="20" />`,
 			);
 		});
-
-		const formatter = new Intl.DateTimeFormat("en-US", {
-			year: "numeric",
-			month: "2-digit",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: false,
-			formatMatcher: "basic",
-		});
-
-		const formatDate = (dateString) => {
-			return formatter
-				.format(new Date(dateString))
-				.replace(",", "")
-				.replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$1-$2"); // only necessary when dealing with "en-US" locale
-		};
 
 		const mastodonComment = `
       <article class="mastodon-comment">
@@ -473,7 +473,7 @@ class MastodonComments extends HTMLElement {
           </div>
           <a class="date" href="${toot.url}" rel="nofollow">
               <time datetime="${toot.created_at}">
-                ${formatDate(toot.created_at)}${toot.edited_at ? " (*)" : ""}
+                ${this.formatDate(toot.created_at)}${toot.edited_at ? " (*)" : ""}
               </time>
           </a>
         </div>
