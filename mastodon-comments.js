@@ -426,7 +426,7 @@ class MastodonComments extends HTMLElement {
 	user_account(account) {
 		var result = `@${account.acct}`;
 		if (account.acct.indexOf("@") === -1) {
-			var domain = new URL(account.url);
+			const domain = new URL(account.url);
 			result += `@${domain.hostname}`;
 		}
 		return result;
@@ -437,30 +437,54 @@ class MastodonComments extends HTMLElement {
 			.format(new Date(dateString))
 			.replace(",", "")
 			.replace(/(\d+)\/(\d+)\/(\d+)/, "$3-$1-$2"); // only necessary when dealing with "en-US" locale
-	}	
+	}
 
-	render_toots(toots, in_reply_to) {
-		var filterFunction = function(toot) { // params: element, index, array
-			var isReplyToToot = toot.in_reply_to_id === in_reply_to;
-			var isOPToot = false;
-			var isFavoritedByOP = false;
-			if(isReplyToToot && this.filter == "favorites" && this.tootAccountURI !== null) {
-				var isOPToot = toot.account.uri == this.tootAccountURI;
-				if(!isOPToot && toot.favourites_count != 0) { // Only fetch if needed.
-					fetch("https://" + (new URL(toot.url)).hostname + "/api/v1/statuses/" + toot.id + "/favourited_by")
-					.then((response) => response.json())
-					.then((data) => {
-						isFavoritedByOP = data.filter((acct) => acct.uri == this.tootAccountURI).length != 0
-					});
+	async render_toots(toots, in_reply_to) {
+		const filterFunction = async (toot) => {
+			const isReplyToToot = toot.in_reply_to_id === in_reply_to;
+			let isFilteredOut = false;
+
+			if (isReplyToToot && this.filter) {
+				let isTootByOwner = false;
+				let isFavoritedByOwner = false;
+
+				if (this.filter === "favorites") {
+					isTootByOwner = toot.account.username === this.user;
+					if (!isTootByOwner && toot.favourites_count > 0) {
+						const data = await fetch(
+							"https://" +
+								this.host +
+								"/api/v1/statuses/" +
+								toot.id +
+								"/favourited_by",
+						).then((response) => response.json());
+
+						isFavoritedByOwner = data.some(
+							(record) => record.username === this.user,
+						);
+					}
+
+					isFilteredOut = !isTootByOwner && !isFavoritedByOwner;
 				}
 			}
-			return isReplyToToot && (this.filter != "favorites" || isOPToot || isFavoritedByOP);
+			return isReplyToToot && !isFilteredOut;
 		};
 
-		var tootsToRender = toots
-			.filter(filterFunction)
-			.sort((a, b) => a.created_at.localeCompare(b.created_at));
-		tootsToRender.forEach((toot) => this.render_toot(toots, toot));
+		// apply async filter and wait for all to finish
+		const tootsToRender = [];
+		await Promise.all(
+			toots.map(async (toot) => {
+				if (await filterFunction(toot)) {
+					tootsToRender.push(toot);
+				}
+			}),
+		);
+
+		tootsToRender
+			.sort((a, b) => a.created_at.localeCompare(b.created_at))
+			.forEach((toot) => {
+				this.render_toot(toots, toot);
+			});
 	}
 
 	render_toot(toots, toot) {
@@ -550,27 +574,25 @@ class MastodonComments extends HTMLElement {
 		this.querySelector("#mastodon-comments-list").innerHTML =
 			"Loading comments from the Fediverse...";
 
-		let _this = this;
+		const _this = this;
 
-		fetch("https://" + this.host + "/api/v1/statuses/" + this.tootId)
+		fetch(`https://${this.host}/api/v1/statuses/${this.tootId}`)
 			.then((response) => response.json())
 			.then((toot) => {
 				this.querySelector("#mastodon-stats").innerHTML = this.toot_stats(toot);
 				this.tootAccountURI = toot.account.uri;
 			});
 
-		fetch(
-			"https://" + this.host + "/api/v1/statuses/" + this.tootId + "/context",
-		)
+		fetch(`https://${this.host}/api/v1/statuses/${this.tootId}/context`)
 			.then((response) => response.json())
 			.then((data) => {
 				if (
-					data["descendants"] &&
-					Array.isArray(data["descendants"]) &&
-					data["descendants"].length > 0
+					data.descendants &&
+					Array.isArray(data.descendants) &&
+					data.descendants.length > 0
 				) {
 					this.querySelector("#mastodon-comments-list").innerHTML = "";
-					_this.render_toots(data["descendants"], _this.tootId, 0);
+					_this.render_toots(data.descendants, _this.tootId, 0);
 				} else {
 					this.querySelector("#mastodon-comments-list").innerHTML =
 						"<p>No comments found</p>";
