@@ -240,8 +240,10 @@ class MastodonComments extends HTMLElement {
 		this.host = this.getAttribute("host");
 		this.user = this.getAttribute("user");
 		this.tootId = this.getAttribute("tootId");
+		this.filter = this.getAttribute("filter");
 
 		this.commentsLoaded = false;
+		this.tootAccountURI = null;
 
 		this.dateFormatter = new Intl.DateTimeFormat("en-US", {
 			year: "numeric",
@@ -438,8 +440,25 @@ class MastodonComments extends HTMLElement {
 	}	
 
 	render_toots(toots, in_reply_to) {
+		var filterFunction = function(toot) { // params: element, index, array
+			var isReplyToToot = toot.in_reply_to_id === in_reply_to;
+			var isOPToot = false;
+			var isFavoritedByOP = false;
+			if(isReplyToToot && this.filter == "favorites" && this.tootAccountURI !== null) {
+				var isOPToot = toot.account.uri == this.tootAccountURI;
+				if(!isOPToot && toot.favourites_count != 0) { // Only fetch if needed.
+					fetch("https://" + (new URL(toot.url)).hostname + "/api/v1/statuses/" + toot.id + "/favourited_by")
+					.then((response) => response.json())
+					.then((data) => {
+						isFavoritedByOP = data.filter((acct) => acct.uri == this.tootAccountURI).length != 0
+					});
+				}
+			}
+			return isReplyToToot && (this.filter != "favorites" || isOPToot || isFavoritedByOP);
+		};
+
 		var tootsToRender = toots
-			.filter((toot) => toot.in_reply_to_id === in_reply_to)
+			.filter(filterFunction)
 			.sort((a, b) => a.created_at.localeCompare(b.created_at));
 		tootsToRender.forEach((toot) => this.render_toot(toots, toot));
 	}
@@ -537,6 +556,7 @@ class MastodonComments extends HTMLElement {
 			.then((response) => response.json())
 			.then((toot) => {
 				this.querySelector("#mastodon-stats").innerHTML = this.toot_stats(toot);
+				this.tootAccountURI = toot.account.uri;
 			});
 
 		fetch(
