@@ -42,6 +42,16 @@ then just use `mastodon-comments` tag to point to the appropiate mastodon toot a
 <mastodon-comments host="fosstodon.org" user="dpecos" tootId="109574160582937075" style="width : 1024px"></mastodon-comments>
 ```
 
+> [!NOTE]
+> If you wish to filter the toots displayed as comment to your page, you can
+> use the HTML attribute `filter="favorites"` in the `mastodon-comments` tag.
+>
+> Like so:
+>
+> ```html
+> <mastodon-comments host="fosstodon.org" user="dpecos" tootId="109574160582937075" filter="favorites" style="width : 1024px"></mastodon-comments>
+> ```
+
 You can see a full example here: [Example embedding a toot into a HTML](./example/index.html)
 
 ![mastodon-comments](./docs/mastodon-comments.png)
