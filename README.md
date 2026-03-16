@@ -55,17 +55,17 @@ then just use `mastodon-comments` tag to point to the appropiate mastodon toot a
 > [!NOTE]
 > Languages EN, DE and FR are now supported out of the box.
 > The used language is determined by the following order:
-> 1. search for the HTML attribute, e.g. `lang="fr"` in the `mastodon-comments` tag
-> 2. search for the site-wide declaration `<html lang="fr">`
-> 3. use the browser/OS preference language
+> 1. search for the HTML attribute, e.g. `lang="fr"` in the `mastodon-comments` tag (for French),
+> 2. search for the site-wide declaration `<html lang="fr">`,
+> 3. use the browser/OS preference language,
 > 4. use hardcoded fallback as set in `const DEFAULT_LANG = "en";` if none of the above determined languages fit.
 >
 > You can also extend additional languages in `const i18n{` like this (example for Italian):
 > ```js
 > const i18n = {
 >  it: {
->    commentsTitle:        "Comments",
->    [...]
+>    commentsTitle:        "Commenti",
+>    [... and so on ...]
 >  },
 > ```
 
