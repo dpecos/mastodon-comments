@@ -59,6 +59,25 @@ const i18n = {
     instanceMissingAlert: "Veuillez indiquer le nom de votre instance",
     dateLocale:           "fr-FR",
   },
+  es: {
+    commentsTitle:        "Comentarios",
+    replyIntro:           "Puedes usar tu cuenta del Fediverso (Mastodon, Sharkey...) para comentar este",
+    replyLinkText:        "toot",
+    replyButtonLabel:     "Respuesta",
+    loadingText:          "Cargando comentarios del Fediverso...",
+    noCommentsText:       "No se han encontrado comentarios",
+    dialogTitle:          "¡Se el primero en comentar!",
+    dialogCloseTitle:     "Cerrar",
+    dialogCloseSymbol:    "&times;",
+    dialogExplain:        "Comentarios gracias a Mastodon. Con una cuenta del Fediverso, puedes responder a esta entrada. Simplemente introduce tu instancia y pulsa responder:",
+    goButtonLabel:        "Ir",
+    copyAlternativeText:  "O puedes copiar esta URL y pegarla en el cuadro de búsqueda de tu aplicación favorita:",
+    copyButtonLabel:      "Copiar",
+    copiedButtonLabel:    "¡Copiado!",
+    instancePlaceholder:  "masto.es",
+    instanceMissingAlert: "Por favor introduce tu instancia",
+    dateLocale:           "es-ES",
+  },
 };
 
 const DEFAULT_LANG = "en";
