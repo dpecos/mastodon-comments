@@ -1,3 +1,88 @@
+// ============================================================
+// Set language dependend texts
+// ============================================================
+const i18n = {
+  en: {
+    commentsTitle:        "Comments",
+    replyIntro:           "You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this",
+    replyLinkText:        "post",
+    replyButtonLabel:     "Reply",
+    loadingText:          "Loading comments from the Fediverse...",
+    noCommentsText:       "No comments found",
+    dialogTitle:          "Reply to this post",
+    dialogCloseTitle:     "Close",
+    dialogCloseSymbol:    "&times;",
+    dialogExplain:        "Comments are powered by Mastodon. With an account on Mastodon (or elsewhere on the Fediverse), you can respond to this post. Simply enter your mastodon instance below, and add a reply:",
+    goButtonLabel:        "Go",
+    copyAlternativeText:  "Alternatively, copy this URL and paste it into the search bar of your Mastodon app:",
+    copyButtonLabel:      "Copy",
+    copiedButtonLabel:    "Copied!",
+    instancePlaceholder:  "mastodon.social",
+    instanceMissingAlert: "Please provide the name of your instance",
+    dateLocale:           "en-US",
+  },
+  de: {
+    commentsTitle:        "Kommentare",
+    replyIntro:           "Du kannst mit deinem Fediverse-Konto (z.B. Mastodon) auf diesen",
+    replyLinkText:        "Beitrag antworten",
+    replyButtonLabel:     "Antworten",
+    loadingText:          "Kommentare werden aus dem Fediverse geladen...",
+    noCommentsText:       "Keine Kommentare gefunden",
+    dialogTitle:          "Auf diesen Beitrag antworten",
+    dialogCloseTitle:     "Schließen",
+    dialogCloseSymbol:    "&times;",
+    dialogExplain:        "Kommentare werden über Mastodon bereitgestellt. Mit einem Konto bei Mastodon (oder anderswo im Fediverse) kannst du auf diesen Beitrag antworten. Gib einfach deine Mastodon-Instanz unten ein:",
+    goButtonLabel:        "Los",
+    copyAlternativeText:  "Alternativ kannst du diese URL kopieren und in die Suchleiste deiner Mastodon-App einfügen:",
+    copyButtonLabel:      "Kopieren",
+    copiedButtonLabel:    "Kopiert!",
+    instancePlaceholder:  "mastodon.social",
+    instanceMissingAlert: "Bitte gib den Namen deiner Instanz an",
+    dateLocale:           "de-DE",
+  },
+  fr: {
+    commentsTitle:        "Commentaires",
+    replyIntro:           "Vous pouvez utiliser votre compte Fediverse (ex. Mastodon) pour répondre à ce",
+    replyLinkText:        "billet",
+    replyButtonLabel:     "Répondre",
+    loadingText:          "Chargement des commentaires depuis le Fediverse...",
+    noCommentsText:       "Aucun commentaire trouvé",
+    dialogTitle:          "Répondre à ce billet",
+    dialogCloseTitle:     "Fermer",
+    dialogCloseSymbol:    "&times;",
+    dialogExplain:        "Les commentaires sont alimentés par Mastodon. Avec un compte sur Mastodon (ou ailleurs sur le Fediverse), vous pouvez répondre à ce billet. Entrez simplement votre instance Mastodon ci-dessous :",
+    goButtonLabel:        "Aller",
+    copyAlternativeText:  "Vous pouvez aussi copier cette URL et la coller dans la barre de recherche de votre application Mastodon :",
+    copyButtonLabel:      "Copier",
+    copiedButtonLabel:    "Copié !",
+    instancePlaceholder:  "mastodon.social",
+    instanceMissingAlert: "Veuillez indiquer le nom de votre instance",
+    dateLocale:           "fr-FR",
+  },
+  es: {
+    commentsTitle:        "Comentarios",
+    replyIntro:           "Puedes usar tu cuenta del Fediverso (Mastodon, Sharkey...) para comentar este",
+    replyLinkText:        "toot",
+    replyButtonLabel:     "Respuesta",
+    loadingText:          "Cargando comentarios del Fediverso...",
+    noCommentsText:       "No se han encontrado comentarios",
+    dialogTitle:          "¡Se el primero en comentar!",
+    dialogCloseTitle:     "Cerrar",
+    dialogCloseSymbol:    "&times;",
+    dialogExplain:        "Comentarios gracias a Mastodon. Con una cuenta del Fediverso, puedes responder a esta entrada. Simplemente introduce tu instancia y pulsa responder:",
+    goButtonLabel:        "Ir",
+    copyAlternativeText:  "O puedes copiar esta URL y pegarla en el cuadro de búsqueda de tu aplicación favorita:",
+    copyButtonLabel:      "Copiar",
+    copiedButtonLabel:    "¡Copiado!",
+    instancePlaceholder:  "masto.es",
+    instanceMissingAlert: "Por favor introduce tu instancia",
+    dateLocale:           "es-ES",
+  },
+};
+
+const DEFAULT_LANG = "en";
+// ============================================================
+
 const styles = `
 :root {
   --font-color: #5d686f;
@@ -245,7 +330,14 @@ class MastodonComments extends HTMLElement {
 		this.commentsLoaded = false;
 		this.tootAccountURI = null;
 
-		this.dateFormatter = new Intl.DateTimeFormat("en-US", {
+		// Resolve locale: attribute → <html lang> → default
+		const lang = this.getAttribute("lang")
+			|| document.documentElement.lang?.split("-")[0]
+			|| navigator.language?.split("-")[0]
+			|| DEFAULT_LANG;
+		this.locale = i18n[lang] ?? i18n[DEFAULT_LANG];
+		
+		this.dateFormatter = new Intl.DateTimeFormat(this.locale.dateLocale, {
 			year: "numeric",
 			month: "2-digit",
 			day: "2-digit",
@@ -267,36 +359,32 @@ class MastodonComments extends HTMLElement {
 		this.mastodonPostUrl = `https://${this.host}/@${this.user}/${this.tootId}`;
 
 		this.innerHTML = `
-      <div id="mastodon-stats"></div>
-      <div id="mastodon-title">Comments</div>
-      <p>You can use your Fediverse (i.e. Mastodon, among many others) account to reply to this <a class="link"
-          href="${this.mastodonPostUrl}" rel="ugc">post</a>.
-          <button id="add-comment" class="button">Reply</button>
-      </p>
+		  <div id="mastodon-stats"></div>
+		  <div id="mastodon-title">${this.locale.commentsTitle}</div>
+		  <p>${this.locale.replyIntro} <a class="link"
+			  href="${this.mastodonPostUrl}" rel="ugc">${this.locale.replyLinkText}</a>.
+			  <button id="add-comment" class="button">${this.locale.replyButtonLabel}</button>
+		  </p>
 
-      <ul id="mastodon-comments-list"></ul>
+		  <ul id="mastodon-comments-list"></ul>
 
-      <dialog id="comment-dialog">
-        <h3>Reply to this post</h3>
-        <button title="Cancel" id="close">&times;</button>
-        <p>
-          Comments are powered by Mastodon. With an account on Mastodon (or elsewhere on the Fediverse), you can respond to this post. Simply enter your mastodon instance below, and add a reply:
-        </p>
-        <div class="input-row">
-          <input type="text" inputmode="url" autocapitalize="none" autocomplete="off" value="${
-						this.escapeHtml(localStorage.getItem("mastodonUrl")) ?? ""
-					}" id="instanceName" placeholder="mastodon.social">
-          <button class="button" id="go">Go</button>
-        </div>
-        <p>Alternatively, copy this URL and paste it into the search bar of your Mastodon app:</p>
-        <div class="input-row">
-          <input type="text" readonly id="copyInput" value="${
-						this.mastodonPostUrl
-					}">
-          <button class="button" id="copy">Copy</button>
-        </div>
-      </dialog>
-    `;
+		  <dialog id="comment-dialog">
+			<h3>${this.locale.dialogTitle}</h3>
+			<button title="${this.locale.dialogCancelTitle}" id="close">${this.locale.dialogCloseSymbol}</button>
+			<p>${this.locale.dialogExplain}</p>
+			<div class="input-row">
+			  <input type="text" inputmode="url" autocapitalize="none" autocomplete="off" value="${
+							this.escapeHtml(localStorage.getItem("mastodonUrl")) ?? ""
+						}" id="instanceName" placeholder="${this.locale.instancePlaceholder}">
+			  <button class="button" id="go">${this.locale.goButtonLabel}</button>
+			</div>
+			<p>${this.locale.copyAlternativeText}</p>
+			<div class="input-row">
+			  <input type="text" readonly id="copyInput" value="${this.mastodonPostUrl}">
+			  <button class="button" id="copy">${this.locale.copyButtonLabel}</button>
+			</div>
+		  </dialog>
+		`;
 
 		const comments = this.querySelector("#mastodon-comments-list");
 		const rootStyle = this.getAttribute("style");
@@ -346,7 +434,7 @@ class MastodonComments extends HTMLElement {
 		goBtn.addEventListener("click", () => {
 			let url = instanceNameInput.value.trim();
 			if (url === "") {
-				window.alert("Please provide the name of your instance");
+				window.alert(this.locale.instanceMissingAlert);
 				return;
 			}
 			localStorage.setItem("mastodonUrl", url);
@@ -368,9 +456,9 @@ class MastodonComments extends HTMLElement {
 		copyBtn.addEventListener("click", () => {
 			copyInput.select();
 			navigator.clipboard.writeText(this.mastodonPostUrl);
-			copyBtn.innerHTML = "Copied!";
+			copyBtn.innerHTML = this.locale.copiedButtonLabel;
 			window.setTimeout(() => {
-				copyBtn.innerHTML = "Copy";
+				copyBtn.innerHTML = this.locale.copyButtonLabel;
 			}, 1000);
 		});
 	}
@@ -396,31 +484,31 @@ class MastodonComments extends HTMLElement {
 
 	toot_stats(toot) {
 		return `
-      <div class="replies ${this.toot_active(toot, "replies")}">
-        <a href="${
+		  <div class="replies ${this.toot_active(toot, "replies")}">
+			<a href="${
 					toot.url
 				}" rel="ugc nofollow"><i class="fa fa-reply fa-fw"></i>${this.toot_count(
 					toot,
 					"replies",
 				)}</a>
-      </div>
-      <div class="reblogs ${this.toot_active(toot, "reblogs")}">
-        <a href="${
+		  </div>
+		  <div class="reblogs ${this.toot_active(toot, "reblogs")}">
+			<a href="${
 					toot.url
 				}/reblogs" rel="nofollow"><i class="fa fa-retweet fa-fw"></i>${this.toot_count(
 					toot,
 					"reblogs",
 				)}</a>
-      </div>
-      <div class="favourites ${this.toot_active(toot, "favourites")}">
-        <a href="${
+		  </div>
+		  <div class="favourites ${this.toot_active(toot, "favourites")}">
+			<a href="${
 					toot.url
 				}/favourites" rel="nofollow"><i class="fa fa-star fa-fw"></i>${this.toot_count(
 					toot,
 					"favourites",
 				)}</a>
-      </div>
-    `;
+		  </div>
+		`;
 	}
 
 	user_account(account) {
@@ -498,31 +586,31 @@ class MastodonComments extends HTMLElement {
 			);
 		});
 
-		const mastodonComment = `
-      <article class="mastodon-comment">
-        <div class="author">
-          <div class="avatar">
-            <img src="${this.escapeHtml(
+	const mastodonComment = `
+		  <article class="mastodon-comment">
+			<div class="author">
+			  <div class="avatar">
+				<img src="${this.escapeHtml(
 							toot.account.avatar_static,
 						)}" height=60 width=60 alt="">
-          </div>
-          <div class="details">
-            <a class="name" href="${toot.account.url}" rel="nofollow">${
+			  </div>
+			  <div class="details">
+				<a class="name" href="${toot.account.url}" rel="nofollow">${
 							toot.account.display_name
 						}</a>
-            <a class="user" href="${
+				<a class="user" href="${
 							toot.account.url
 						}" rel="nofollow">${this.user_account(toot.account)}</a>
-          </div>
-          <a class="date" href="${toot.url}" rel="nofollow">
-              <time datetime="${toot.created_at}">
-                ${this.formatDate(toot.created_at)}${toot.edited_at ? " (*)" : ""}
-              </time>
-          </a>
-        </div>
-        <div class="content">${toot.content}</div>
-        <div class="attachments">
-          ${toot.media_attachments
+			  </div>
+			  <a class="date" href="${toot.url}" rel="nofollow">
+				  <time datetime="${toot.created_at}">
+					${this.formatDate(toot.created_at)}${toot.edited_at ? " (*)" : ""}
+				  </time>
+			  </a>
+			</div>
+			<div class="content">${toot.content}</div>
+			<div class="attachments">
+			  ${toot.media_attachments
 						.map((attachment) => {
 							if (attachment.type === "image") {
 								return `<a href="${attachment.url}" rel="ugc nofollow"><img src="${
@@ -539,12 +627,12 @@ class MastodonComments extends HTMLElement {
 							}
 						})
 						.join("")}
-        </div>
-        <div class="status">
-          ${this.toot_stats(toot)}
-        </div>
-      </article>
-    `;
+			</div>
+			<div class="status">
+			  ${this.toot_stats(toot)}
+			</div>
+		  </article>
+	`;
 
 		var li = document.createElement("li");
 		li.setAttribute("id", toot.id);
@@ -571,8 +659,7 @@ class MastodonComments extends HTMLElement {
 	loadComments() {
 		if (this.commentsLoaded) return;
 
-		this.querySelector("#mastodon-comments-list").innerHTML =
-			"Loading comments from the Fediverse...";
+		this.querySelector("#mastodon-comments-list").innerHTML = this.locale.loadingText;
 
 		const _this = this;
 
@@ -595,7 +682,7 @@ class MastodonComments extends HTMLElement {
 					_this.render_toots(data.descendants, _this.tootId, 0);
 				} else {
 					this.querySelector("#mastodon-comments-list").innerHTML =
-						"<p>No comments found</p>";
+						`<p>${this.locale.noCommentsText}</p>`;
 				}
 
 				_this.commentsLoaded = true;
