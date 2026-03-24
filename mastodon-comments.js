@@ -75,8 +75,8 @@ const i18n = {
 		replyLinkText: "toot",
 		replyButtonLabel: "Responder",
 		loadingText: "Cargando comentarios del Fediverso...",
-		noCommentsText: "No se han encontrado comentarios",
-		dialogTitle: "¡Se el primero en comentar!",
+		noCommentsText: "¡Sé el primero en comentar!",
+		dialogTitle: "Responder en el Fediverso",
 		dialogCloseTitle: "Cerrar",
 		dialogCloseSymbol: "&times;",
 		dialogExplain:
@@ -383,7 +383,7 @@ class MastodonComments extends HTMLElement {
 
 		  <dialog id="comment-dialog">
 			<h3>${this.locale.dialogTitle}</h3>
-			<button title="${this.locale.dialogCancelTitle}" id="close">${this.locale.dialogCloseSymbol}</button>
+			<button title="${this.locale.dialogCloseTitle}" id="close">${this.locale.dialogCloseSymbol}</button>
 			<p>${this.locale.dialogExplain}</p>
 			<div class="input-row">
 			  <input type="text" inputmode="url" autocapitalize="none" autocomplete="off" value="${
