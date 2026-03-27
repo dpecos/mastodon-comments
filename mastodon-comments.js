@@ -75,8 +75,8 @@ const i18n = {
 		replyLinkText: "toot",
 		replyButtonLabel: "Responder",
 		loadingText: "Cargando comentarios del Fediverso...",
-		noCommentsText: "¡Sé el primero en comentar!",
-		dialogTitle: "Responder en el Fediverso",
+		noCommentsText: "No se han encontrado comentarios",
+		dialogTitle: "Responde a este post",
 		dialogCloseTitle: "Cerrar",
 		dialogCloseSymbol: "&times;",
 		dialogExplain:
