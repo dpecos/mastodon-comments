@@ -105,6 +105,12 @@ const styles = `
   --block-border-color: #ededf0;
   --block-background-color: #f7f8f8;
   --dialog-background-color: #ffffff;
+  --muted-color: #5d686f;
+  --reply-color: #003eaa;
+  --reblog-color: #8c8dff;
+  --favourite-color: #ca8f04;
+  --button-color: #595aff;
+  --button-hover-color: #4849ff;
 
   --comment-indent: 40px;
 }
@@ -115,6 +121,12 @@ const styles = `
     --block-border-color: #3e3e3e;
     --block-background-color: #1e1e1e;
     --dialog-background-color: #2d2d2d;
+    --muted-color: #8a9ba3;
+    --reply-color: #7b9fff;
+    --reblog-color: #a8a9ff;
+    --favourite-color: #e6b44a;
+    --button-color: #6c6dff;
+    --button-hover-color: #595aff;
   }
 }
 
@@ -123,6 +135,12 @@ const styles = `
   --block-border-color: #3e3e3e;
   --block-background-color: #1e1e1e;
   --dialog-background-color: #2d2d2d;
+  --muted-color: #8a9ba3;
+  --reply-color: #7b9fff;
+  --reblog-color: #a8a9ff;
+  --favourite-color: #e6b44a;
+  --button-color: #6c6dff;
+  --button-hover-color: #595aff;
 }
 
 mastodon-comments {
@@ -197,7 +215,7 @@ p {
 }
 
 .mastodon-comment .author .details .user {
-  color: #5d686f;
+  color: var(--muted-color);
   font-size: medium;
 }
 
@@ -234,20 +252,20 @@ p {
 }
 
 .mastodon-comment .status a, #mastodon-stats a {
-  color: #5d686f;
+  color: var(--muted-color);
   text-decoration: none;
 }
 
 .mastodon-comment .status .replies.active a, #mastodon-stats .replies.active a {
-  color: #003eaa;
+  color: var(--reply-color);
 }
 
 .mastodon-comment .status .reblogs.active a, #mastodon-stats .reblogs.active a {
-  color: #8c8dff;
+  color: var(--reblog-color);
 }
 
 .mastodon-comment .status .favourites.active a, #mastodon-stats .favourites.active a {
-  color: #ca8f04;
+  color: var(--favourite-color);
 }
 
 @media only screen and (max-width: 640px) {
@@ -313,7 +331,7 @@ dialog #close {
 
 .button {
   padding: 8px 16px;
-  background-color: #595aff;
+  background-color: var(--button-color);
   color: white;
   border: none;
   border-radius: var(--block-border-radius);
@@ -326,7 +344,7 @@ dialog #close {
 }
 
 .button:hover {
-  background-color: #4849ff;
+  background-color: var(--button-hover-color);
 }
 `;
 
@@ -603,9 +621,14 @@ class MastodonComments extends HTMLElement {
 		  <article class="mastodon-comment">
 			<div class="author">
 			  <div class="avatar">
-				<img src="${this.escapeHtml(
-					toot.account.avatar_static,
-				)}" height=60 width=60 alt="">
+			  	<a class="user" href="${
+					toot.account.url
+				}" rel="nofollow"><img src="${this.escapeHtml(
+					toot.account.avatar_static
+				)}" height=60 width=60 alt="${
+					toot.account.username
+				}" loading="lazy">
+				</a>
 			  </div>
 			  <div class="details">
 				<a class="name" href="${toot.account.url}" rel="nofollow">${
