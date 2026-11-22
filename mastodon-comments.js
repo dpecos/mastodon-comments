@@ -268,6 +268,16 @@ p {
   color: var(--favourite-color);
 }
 
+.replies svg,
+.reblogs svg,
+.favourites svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  margin-right: 0.10em;
+  vertical-align: -0.15em;
+}
+
 @media only screen and (max-width: 640px) {
   .mastodon-comment .author {
     flex-wrap: nowrap;
